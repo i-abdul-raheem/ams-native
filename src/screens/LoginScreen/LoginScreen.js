@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,61 @@ import {
   Dimensions,
   ImageBackground,
 } from 'react-native';
+import { login } from '../../api';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const LoginScren = ({navigation}) => {
+export const LoginScreen = ({navigation}) => {
+  const [employeeID, setEmployeeID] = useState('');
+  const [password, setPassword] = useState('');
+
+  const storeData = async (key, value) => {
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error('Error storing data:', error);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      console.log(employeeID, password);
+
+      login({id: employeeID, password})
+        .then(res => {
+          if (res) {
+            storeData('@ams-token', res?.token);
+            storeData('@ams-user', res?.user);
+            navigation.navigate('Details');
+            return;
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      // axios
+      //   .post(
+      //     'http://192.168.0.114:5000/api/login',
+      //     {id: employeeID, password},
+      //     {
+      //       headers: {
+      //         'Content-Type': 'application/json',
+      //       },
+      //     },
+      //   )
+      //   .then(res => {
+      //     console.log(res);
+      //     return res?.data;
+      //   })
+      //   .catch(err => {
+      //     console.log(err);
+      //     return err;
+      //   });
+    } catch {
+      //
+    }
+  };
   return (
     <ImageBackground
       source={require('../../assets/images/login.jpg')}
@@ -20,12 +73,19 @@ export const LoginScren = ({navigation}) => {
       <SafeAreaView>
         <View style={styles.container}>
           <Text style={styles.header}>Login</Text>
-          <TextInput style={styles.input} placeholder="Employee ID" />
+          <TextInput
+            style={styles.input}
+            placeholder="Employee ID"
+            value={employeeID}
+            onChangeText={text => setEmployeeID(text)}
+          />
 
           <TextInput
             style={styles.input}
             placeholder="Password"
             secureTextEntry
+            value={password}
+            onChangeText={text => setPassword(text)}
           />
           <View>
             <TouchableOpacity>
@@ -34,10 +94,7 @@ export const LoginScren = ({navigation}) => {
 
             {/* Other components */}
             <View style={styles.buttonContainer}>
-              <Button
-                title="Login"
-                onPress={() => navigation.navigate('Details')}
-              />
+              <Button title="Login" onPress={handleSubmit} />
             </View>
           </View>
         </View>
