@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   SafeAreaView,
@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {DatePickerInput} from '../../components';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getEmployee } from '../../api/employee';
 
 const Data = [
   {
@@ -58,20 +60,61 @@ const TableRow = ({checkIn, checkOut, day, date, index}) => {
 };
 
 export const EmployeeDetailScreen = ({empId, empName, empDept}) => {
+  const [user, setUser]= useState({});
+  const [employee, setEmployee] = useState({});
+  useEffect(()=>{
+    async function fetchData(){
+      await getData('@ams-user');
+    }
+    const res=fetchData();
+    console.log(res, 'res 2');
+
+    
+  },[]);
+
+  useEffect(() => {
+    console.log(user, 'user 1');
+    if (user?.id) {
+      getEmployee(user?.id)
+        .then(res => {
+          if (res && res?.data) {
+            console.log(res, 'res 3');
+            setEmployee(res?.data?.employeeId);
+            return;
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  }, [user]);
+
+  const getData = async key => {
+    try {
+      const value = await AsyncStorage.getItem(key);
+      if (value !== null) {
+        let res = JSON.parse(value);
+        setUser(res);
+      }
+    } catch (error) {
+      console.error('Error getting data:', error);
+    }
+  };
   return (
     <SafeAreaView style={{paddingHorizontal: 16, paddingVertical: 16}}>
       <View style={styles.container}>
         <View style={styles.detailsContainer}>
+          {console.log(employee, 'employee')}
           <Text style={styles.label}>Employee ID:</Text>
-          <Text style={styles.value}>{empId}</Text>
+          <Text style={styles.value}>{employee?._id || "Not Found"}</Text>
         </View>
         <View style={styles.detailsContainer}>
           <Text style={styles.label}>Name:</Text>
-          <Text style={styles.value}>{empName}</Text>
+          <Text style={styles.value}>{employee?.firstName || "Not Found"}</Text>
         </View>
         <View style={styles.detailsContainer}>
           <Text style={styles.label}>Dept:</Text>
-          <Text style={styles.value}>{empDept}</Text>
+          <Text style={styles.value}>{employee?.dept || "Not Found"}</Text>
         </View>
       </View>
       <View style={styles.filterContainer}>
