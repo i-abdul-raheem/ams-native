@@ -93,11 +93,8 @@ export const EmployeeDetailScreen = ({empId, empName, empDept}) => {
     try {
       const value = await AsyncStorage.getItem(key);
       if (value !== null) {
-        // Data found
-        console.log(value);
         let res = JSON.parse(value);
         setUser(res);
-        // return res;
       }
     } catch (error) {
       console.error('Error getting data:', error);
